@@ -32,7 +32,9 @@
       "icons/icon.ico"
     ],
     "resources": [
-      "lingti_sdk.dll"
+      "lingti_sdk.dll",
+      "encrypted_config.txt",
+      "lingtiwfp64.sys"
     ]
   }
 }
