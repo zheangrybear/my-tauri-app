@@ -1,49 +1,62 @@
 import { useState } from "react";
-import reactLogo from "./assets/react.svg";
 import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
 
 function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+  const [msg, setMsg] = useState("");
+  const [isRunning, setIsRunning] = useState(false);
+  const [version, setVersion] = useState("");
 
-  async function greet() {
+  async function submit() {
     // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
+    if (isRunning) {
+      await stopService();
+    } else {
+      await startService();
+    }
+    setIsRunning(!isRunning);
+  }
+
+  // 启动 SDK
+  async function startService() {
+    const code = await invoke("start_tun_with_config_file", { config: "encrypted_config.txt" });
+    if(code === 0){
+      setMsg(`Started successfully`);
+    }else{
+      setMsg(`StartTun2R result: ${code}`);
+    }
+  }
+
+  // 停止
+  async function stopService() {
+    const code = await invoke("stop_tun");
+    if(code === 0){
+      setMsg(`Stopped successfully`);
+    }else{
+      setMsg(`StopTun2R result: ${code}`);
+    }
+  }
+
+  // 获取 SDK 版本
+  async function getVersion() {
+    const version = await invoke("sdk_version");
+    setVersion(`SDK Version: ${version}`);
   }
 
   return (
     <main className="container">
-      <h1>Welcome to Tauri + React</h1>
+      <h1>Welcome to Lingti Dev Kit</h1>
+      <p>{version}</p>
 
-      <div className="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+      <div className="row" onClick={() => getVersion()}>
+        <img src="https://res.lingti666.com/img/icon/pc/default.png" style={{ width: "230px" }} alt="Lingti Dev Kit logo" />
       </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
-
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
+      <div className="row" style={{ marginTop: "30px" }}>
+        <button type="submit" onClick={() => {
+          submit();
+        }}>{isRunning ? "Stop" : "Start"}</button>
+      </div>
+      <p>{msg}</p>
     </main>
   );
 }
